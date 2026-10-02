@@ -130,6 +130,11 @@ function App() {
   const [resourceTab, setResourceTab] = useState("Notes");
   const [noteModal, setNoteModal] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatInput, setChatInput] = useState("");
+  const [chatMessages, setChatMessages] = useState([
+    { from: "bot", text: "Hi there! 👋 I’m the Teach It Easy assistant. Chat support will be live soon — leave a message and we’ll be ready to help." },
+  ]);
 
   const visibleTeachers = useMemo(() => teachers.filter((teacher) => {
     const subjectMatch = activeSubject === "All subjects" || teacher.subject === activeSubject;
@@ -140,6 +145,18 @@ function App() {
   function chooseTeacher(teacher) {
     setSelectedTeacher(teacher);
     setResourceTab("Notes");
+  }
+
+  function sendChatMessage(event) {
+    event.preventDefault();
+    const message = chatInput.trim();
+    if (!message) return;
+    setChatMessages((current) => [
+      ...current,
+      { from: "you", text: message },
+      { from: "bot", text: "Thanks for reaching out! Our chat assistant will be live soon. In the meantime, explore the teachers, notes, and videos on this page. 🌱" },
+    ]);
+    setChatInput("");
   }
 
   const resourceList = resourceTab === "Notes" ? selectedTeacher.notes : selectedTeacher.videos;
@@ -278,6 +295,28 @@ function App() {
         <div className="footer-links"><a href="#teachers">Teachers</a><a href="#resources">Resources</a><a href="#how-it-works">How it works</a></div>
         <span className="copyright">© 2025 Teach It Easy</span>
       </footer>
+
+      <div className="chat-widget">
+        {chatOpen && <section className="chat-panel" aria-label="Teach It Easy chat">
+          <div className="chat-header">
+            <span className="chat-avatar"><Icon name="spark" size={18} /></span>
+            <div><b>Teach It Easy</b><small><i /> We’ll be live soon</small></div>
+            <button className="chat-close" aria-label="Close chat" onClick={() => setChatOpen(false)}><Icon name="close" size={17} /></button>
+          </div>
+          <div className="chat-messages" aria-live="polite">
+            {chatMessages.map((message, index) => <div key={index} className={`chat-message ${message.from === "you" ? "from-you" : "from-bot"}`}>{message.text}</div>)}
+          </div>
+          <form className="chat-form" onSubmit={sendChatMessage}>
+            <label className="sr-only" htmlFor="chat-input">Message</label>
+            <input id="chat-input" value={chatInput} onChange={(event) => setChatInput(event.target.value)} placeholder="Write a message…" />
+            <button type="submit" aria-label="Send message" disabled={!chatInput.trim()}><Icon name="arrow" size={17} /></button>
+          </form>
+          <div className="chat-footnote">Replies are a preview — live support is coming soon.</div>
+        </section>}
+        <button className="chat-launcher" aria-label={chatOpen ? "Close chat" : "Open chat"} aria-expanded={chatOpen} onClick={() => setChatOpen(!chatOpen)}>
+          {chatOpen ? <Icon name="close" size={22} /> : <><Icon name="spark" size={21} /><span>Chat with us</span></>}
+        </button>
+      </div>
 
       {noteModal && <div className="modal-backdrop" role="presentation" onClick={() => setNoteModal(null)}>
         <section className="resource-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" onClick={(event) => event.stopPropagation()}>
